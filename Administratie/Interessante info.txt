@@ -2,3 +2,6 @@ Interessante links/info
 
 Impulse response REW
 https://www.roomeqwizard.com/help/help_en-GB/html/impulseresponse.html
+
+Quasi-anechoic measurement
+https://www.audiosciencereview.com/forum/index.php?threads/how-to-make-quasi-anechoic-speaker-measurements-spinoramas-with-rew-and-vituixcad.21860/
