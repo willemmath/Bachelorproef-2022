@@ -5,3 +5,6 @@ https://www.roomeqwizard.com/help/help_en-GB/html/impulseresponse.html
 
 Quasi-anechoic measurement
 https://www.audiosciencereview.com/forum/index.php?threads/how-to-make-quasi-anechoic-speaker-measurements-spinoramas-with-rew-and-vituixcad.21860/
+
+beamforming
+https://www.hindawi.com/journals/jece/2013/718574/#EEq5
