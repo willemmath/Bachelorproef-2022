@@ -11,3 +11,9 @@ https://www.hindawi.com/journals/jece/2013/718574/#EEq5
 
 USB audio PIC
 https://www.microchip.com/en-us/solutions/consumer/audio-and-speech/pic32-digital-audio/pic32-usb-audio#
+
+USB noise
+https://andybrown.me.uk/2015/07/24/usb-filtering/
+
+USB margins clock
+https://docs.opentitan.org/hw/ip/usbdev/doc/#:~:text=The%20USB%20Full%2DSpeed%20interface,accurate%2048%20MHz%20clock%20source.
