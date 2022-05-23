@@ -64,6 +64,8 @@ void Error_Handler(void);
 #define LED2_GPIO_Port GPIOA
 #define LED3_Pin GPIO_PIN_2
 #define LED3_GPIO_Port GPIOA
+#define DAC_RESET_Pin GPIO_PIN_0
+#define DAC_RESET_GPIO_Port GPIOB
 #define Button1_Pin GPIO_PIN_6
 #define Button1_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */

@@ -44,16 +44,21 @@
 I2S_HandleTypeDef hi2s2;
 I2S_HandleTypeDef hi2s3;
 DMA_HandleTypeDef hdma_spi2_rx;
+DMA_HandleTypeDef hdma_spi3_rx;
 
 SAI_HandleTypeDef hsai_BlockA1;
+DMA_HandleTypeDef hdma_sai1_a;
 
 SPI_HandleTypeDef hspi1;
 
 /* USER CODE BEGIN PV */
 
 uint16_t rxBuf[8];
+uint16_t rxBuf2[8];
+uint8_t txBuf[16];
 
 uint8_t mode = 1;
+uint16_t counter = 0;
 
 /* USER CODE END PV */
 
@@ -110,8 +115,18 @@ int main(void)
   MX_USB_Device_Init();
   /* USER CODE BEGIN 2 */
 
-  HAL_I2S_Receive_DMA(&hi2s2,rxBuf,4);
+  HAL_I2S_Receive_DMA(&hi2s2, rxBuf, 4);
+  HAL_I2S_Receive_DMA(&hi2s3, rxBuf2, 4);
+  HAL_SAI_Transmit_DMA(&hsai_BlockA1, txBuf, 4);
 
+
+
+
+  HAL_Delay(100);
+
+
+  HAL_GPIO_WritePin(LED1_GPIO_Port,LED1_Pin,(mode == 1));
+  HAL_GPIO_WritePin(DAC_RESET_GPIO_Port,DAC_RESET_Pin,1);
 
 
   /* USER CODE END 2 */
@@ -123,26 +138,57 @@ int main(void)
 
 	  //HAL_GPIO_WritePin(LED3_GPIO_Port,LED3_Pin,1);
 
+/*
 
-	  /**
+     for(int i = 0; i<16; i++){
+  		  if(i == mode-1){
+  			  txBuf[i] = 0xff;
+  		  }
+  		  else{
+  			  txBuf[i] = 0b00000000;
+  		  }
+  	  }
+
+/*
+
+
+
+	  for(int i = 0; i<16; i++){
+		  if(i == mode-1){
+			  txBuf[i] = rxBuf[0] & 0xff;
+		  }
+		  if(i == mode){
+			  txBuf[i] = rxBuf[0] >>8;
+		  }
+		  else{
+			  txBuf[i] = 0b00000000;
+		  }
+
+	  }
+
+		*/
+
+
 	  if(HAL_GPIO_ReadPin(Button1_GPIO_Port,Button1_Pin)==1){
-		  if(mode == 3){
+		  if(mode == 4){
 			  mode = 1;
 		  }
 		  else{
 			  mode++;
 		  }
 
+		  HAL_GPIO_WritePin(LED1_GPIO_Port,LED1_Pin,(mode == 1));
+		  HAL_GPIO_WritePin(LED2_GPIO_Port,LED2_Pin,(mode == 2));
+		  HAL_GPIO_WritePin(LED3_GPIO_Port,LED3_Pin,(mode == 3));
+
 		  while(HAL_GPIO_ReadPin(Button1_GPIO_Port,Button1_Pin)==1);
 	  }
 
 
-	  HAL_GPIO_WritePin(LED1_GPIO_Port,LED1_Pin,(mode == 1));
-	  HAL_GPIO_WritePin(LED2_GPIO_Port,LED2_Pin,(mode == 2));
-	  HAL_GPIO_WritePin(LED3_GPIO_Port,LED3_Pin,(mode == 3));
 
 
- **/
+
+
 
 
 
@@ -176,9 +222,8 @@ void SystemClock_Config(void)
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI48|RCC_OSCILLATORTYPE_HSE;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
-  RCC_OscInitStruct.HSI48State = RCC_HSI48_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
   RCC_OscInitStruct.PLL.PLLM = RCC_PLLM_DIV5;
@@ -207,9 +252,9 @@ void SystemClock_Config(void)
   */
   PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_SAI1|RCC_PERIPHCLK_I2S
                               |RCC_PERIPHCLK_USB;
-  PeriphClkInit.Sai1ClockSelection = RCC_SAI1CLKSOURCE_SYSCLK;
+  PeriphClkInit.Sai1ClockSelection = RCC_SAI1CLKSOURCE_PLL;
   PeriphClkInit.I2sClockSelection = RCC_I2SCLKSOURCE_PLL;
-  PeriphClkInit.UsbClockSelection = RCC_USBCLKSOURCE_HSI48;
+  PeriphClkInit.UsbClockSelection = RCC_USBCLKSOURCE_PLL;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
     Error_Handler();
@@ -237,8 +282,8 @@ static void MX_I2S2_Init(void)
   /* USER CODE END I2S2_Init 1 */
   hi2s2.Instance = SPI2;
   hi2s2.Init.Mode = I2S_MODE_MASTER_RX;
-  hi2s2.Init.Standard = I2S_STANDARD_PHILIPS;
-  hi2s2.Init.DataFormat = I2S_DATAFORMAT_24B;
+  hi2s2.Init.Standard = I2S_STANDARD_MSB;
+  hi2s2.Init.DataFormat = I2S_DATAFORMAT_32B;
   hi2s2.Init.MCLKOutput = I2S_MCLKOUTPUT_DISABLE;
   hi2s2.Init.AudioFreq = I2S_AUDIOFREQ_48K;
   hi2s2.Init.CPOL = I2S_CPOL_LOW;
@@ -270,7 +315,7 @@ static void MX_I2S3_Init(void)
   hi2s3.Instance = SPI3;
   hi2s3.Init.Mode = I2S_MODE_MASTER_RX;
   hi2s3.Init.Standard = I2S_STANDARD_PHILIPS;
-  hi2s3.Init.DataFormat = I2S_DATAFORMAT_16B;
+  hi2s3.Init.DataFormat = I2S_DATAFORMAT_32B;
   hi2s3.Init.MCLKOutput = I2S_MCLKOUTPUT_DISABLE;
   hi2s3.Init.AudioFreq = I2S_AUDIOFREQ_48K;
   hi2s3.Init.CPOL = I2S_CPOL_LOW;
@@ -311,7 +356,7 @@ static void MX_SAI1_Init(void)
   hsai_BlockA1.Init.MonoStereoMode = SAI_STEREOMODE;
   hsai_BlockA1.Init.CompandingMode = SAI_NOCOMPANDING;
   hsai_BlockA1.Init.TriState = SAI_OUTPUT_NOTRELEASED;
-  if (HAL_SAI_InitProtocol(&hsai_BlockA1, SAI_I2S_STANDARD, SAI_PROTOCOL_DATASIZE_16BIT, 2) != HAL_OK)
+  if (HAL_SAI_InitProtocol(&hsai_BlockA1, SAI_I2S_MSBJUSTIFIED, SAI_PROTOCOL_DATASIZE_32BIT, 2) != HAL_OK)
   {
     Error_Handler();
   }
@@ -375,6 +420,12 @@ static void MX_DMA_Init(void)
   /* DMA1_Channel1_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Channel1_IRQn);
+  /* DMA1_Channel2_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel2_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel2_IRQn);
+  /* DMA1_Channel3_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel3_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel3_IRQn);
   /* DMAMUX_OVR_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMAMUX_OVR_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMAMUX_OVR_IRQn);
@@ -399,11 +450,14 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOA, LED1_Pin|LED2_Pin|LED3_Pin, GPIO_PIN_RESET);
 
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(DAC_RESET_GPIO_Port, DAC_RESET_Pin, GPIO_PIN_RESET);
+
   /*Configure GPIO pin : PG10 */
   GPIO_InitStruct.Pin = GPIO_PIN_10;
   GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
   GPIO_InitStruct.Alternate = GPIO_AF0_MCO;
   HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
 
@@ -413,6 +467,13 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : DAC_RESET_Pin */
+  GPIO_InitStruct.Pin = DAC_RESET_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(DAC_RESET_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : Button1_Pin */
   GPIO_InitStruct.Pin = Button1_Pin;
@@ -426,33 +487,90 @@ static void MX_GPIO_Init(void)
 
 void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s){
 
-	  if(rxBuf[1] > 50000 ){
-		  HAL_GPIO_WritePin(LED1_GPIO_Port,LED1_Pin,1);
-	  }
+/*
 
-	  if(rxBuf[1] < 50000 ){
-	  			  HAL_GPIO_WritePin(LED1_GPIO_Port,LED1_Pin,0);
-	 }
+	if(rxBuf[0]>30500){
+		HAL_GPIO_WritePin(LED1_GPIO_Port,LED1_Pin,1);
+	}
+	if(rxBuf[1]>30500){
+		HAL_GPIO_WritePin(LED2_GPIO_Port,LED2_Pin,1);
+	}
+	if(rxBuf[2]>30500){
+		HAL_GPIO_WritePin(LED3_GPIO_Port,LED3_Pin,1);
+	}
+
+*/
+	/*
+
+	if(counter == 65535){
+		counter = 0;
+	}
+	else{
+		counter = counter + 10;
+	}
+
+	txBuf[2] = counter >>8 ;
+	txBuf[1] = counter & 0xff ;
+
+
+*/
+/*
+
+	int lSample = (int) (rxBuf2[0]<<16 | rxBuf2[1]);
 
 
 
-	  if(rxBuf[1] > 65000 ){
-		  HAL_GPIO_WritePin(LED2_GPIO_Port,LED2_Pin,1);
-	  }
+	txBuf[3] = (lSample >> 24) & 0xFF;
+	txBuf[2] = (lSample >> 16) & 0xFF;
+	txBuf[1] = (lSample >> 8)  & 0xFF;
+	txBuf[0] =  lSample  & 0xFF;
 
-	  if(rxBuf[1] < 65000 ){
-	  			  HAL_GPIO_WritePin(LED2_GPIO_Port,LED2_Pin,0);
-	 }
+*/
+	txBuf[3]= (rxBuf2[0]>>8) & 0xFF;
+	txBuf[2]=  rxBuf2[0] & 0xFF;
+	txBuf[1]= (rxBuf2[1]>>8) & 0xFF;
+	txBuf[0]=  rxBuf2[1] & 0xFF;
+
+	/* deze wel nodig!!
+	txBuf[7]= (rxBuf2[2]>>8) & 0xFF;
+	txBuf[6]=  rxBuf2[2] & 0xFF;
+	txBuf[5]= (rxBuf2[3]>>8) & 0xFF;
+	txBuf[4]=  rxBuf2[3] & 0xFF;
+
+	/*
+	txBuf[1] = rxBuf2[0] & 0xff;
+	txBuf[2] = (rxBuf2[0] >>8) ;
+	txBuf[9] = rxBuf2[0] & 0xff;
+	txBuf[10] = (rxBuf2[0] >>8) ;
 
 
-	  if(rxBuf[1] > 65500 ){
-		  HAL_GPIO_WritePin(LED3_GPIO_Port,LED3_Pin,1);
-	  }
+	txBuf[0] = (rxBuf2[0]<<4) & 0b11110000;
+	txBuf[1] = (rxBuf2[0] >> 4)& 0b11111111;
+	txBuf[2] = (rxBuf2[1] <<4 ) | ((rxBuf2[0]>>12) & 0b00001111);
 
-	  if(rxBuf[1] < 65500 ){
-	  			  HAL_GPIO_WritePin(LED3_GPIO_Port,LED3_Pin,0);
-	 }
 
+	txBuf[9] = (rxBuf2[0]<<4) & 0b11110000;
+	txBuf[10] = (rxBuf2[0] >> 4)& 0b11111111;
+	txBuf[8] = (rxBuf2[1] <<4 ) | ((rxBuf2[0]>>12) & 0b00001111);
+
+
+
+
+
+
+
+
+
+	/*
+	txBuf[0] = rxBuf[0] & 0xff;
+	txBuf[1] = rxBuf[0] >>8;
+	txBuf[2] = rxBuf[1] & 0xff;
+	txBuf[3] = rxBuf[1] >>8;
+	txBuf[4] = rxBuf[2] & 0xff;
+	txBuf[5] = rxBuf[2] >>8;
+	txBuf[6] = rxBuf[3] & 0xff;
+	txBuf[7] = rxBuf[3] >>8;
+    */
 
 	  UNUSED(hi2s);
 }
@@ -462,7 +580,46 @@ void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s){
 
 
 void HAL_I2S_RxHalfCpltCallback(I2S_HandleTypeDef *hi2s){
-	  UNUSED(hi2s);
+
+
+
+	txBuf[11]= (rxBuf2[4]>>8) & 0xFF;
+	txBuf[10]=  rxBuf2[4] & 0xFF;
+	txBuf[9]= (rxBuf2[5]>>8) & 0xFF;
+	txBuf[8]=  rxBuf2[5] & 0xFF;
+
+	/* deze wel nodig!!
+	txBuf[15]= (rxBuf2[6]>>8) & 0xFF;
+	txBuf[14]=  rxBuf2[6] & 0xFF;
+	txBuf[13]= (rxBuf2[7]>>8) & 0xFF;
+	txBuf[12]=  rxBuf2[7] & 0xFF;
+
+	/*
+	int lSample = (int) (rxBuf2[2]<<16| rxBuf2[3]);
+
+	txBuf[10] = (lSample >> 24) & 0xFF;
+	txBuf[9] = (lSample >> 16) & 0xFF;
+	txBuf[8] = (lSample >> 8)  & 0xFF;
+	txBuf[11] =  lSample  & 0xFF;
+
+
+	/*
+	HAL_GPIO_WritePin(LED1_GPIO_Port,LED1_Pin,0);
+	HAL_GPIO_WritePin(LED2_GPIO_Port,LED2_Pin,0);
+	HAL_GPIO_WritePin(LED3_GPIO_Port,LED3_Pin,0);
+	/*
+	txBuf[8] = rxBuf[4] & 0xff;
+	txBuf[9] = rxBuf[4] >>8;
+	txBuf[10] = rxBuf[5] & 0xff;
+	txBuf[11] = rxBuf[5] >>8;
+	txBuf[12] = rxBuf[6] & 0xff;
+	txBuf[13] = rxBuf[6] >>8;
+	txBuf[14] = rxBuf[7] & 0xff;
+	txBuf[15] = rxBuf[7] >>8;
+	*/
+
+
+	UNUSED(hi2s);
 
 
 }

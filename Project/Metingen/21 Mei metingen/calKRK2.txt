@@ -1,0 +1,32 @@
+Filter Settings file
+
+Room EQ V5.20.4
+Dated: May 21, 2022 10:57:28 AM
+
+Notes:
+
+Equaliser: Generic
+dayton pc source 56
+Filter  1: ON  PK       Fc   62.20 Hz  Gain  -3.30 dB  Q  9.050
+Filter  2: ON  PK       Fc   79.50 Hz  Gain  -4.20 dB  Q  4.468
+Filter  3: ON  PK       Fc   114.0 Hz  Gain  -4.20 dB  Q  2.996
+Filter  4: ON  PK       Fc   142.0 Hz  Gain  -4.50 dB  Q  4.342
+Filter  5: ON  PK       Fc   180.5 Hz  Gain  -3.40 dB  Q  5.204
+Filter  6: ON  PK       Fc   238.0 Hz  Gain  -3.30 dB  Q  2.000
+Filter  7: ON  PK       Fc   292.0 Hz  Gain  -3.20 dB  Q  4.886
+Filter  8: ON  PK       Fc   439.0 Hz  Gain  -2.10 dB  Q  1.720
+Filter  9: ON  PK       Fc   642.0 Hz  Gain  -2.50 dB  Q  3.171
+Filter 10: ON  PK       Fc   944.0 Hz  Gain  -2.20 dB  Q  4.999
+Filter 11: ON  PK       Fc    1101 Hz  Gain  -1.50 dB  Q  4.999
+Filter 12: ON  PK       Fc    1740 Hz  Gain  -4.70 dB  Q  3.437
+Filter 13: ON  PK       Fc    4150 Hz  Gain  -4.60 dB  Q  2.392
+Filter 14: ON  PK       Fc    6559 Hz  Gain  -4.70 dB  Q  3.634
+Filter 15: ON  PK       Fc    7546 Hz  Gain  -1.70 dB  Q  1.201
+Filter 16: ON  PK       Fc   10252 Hz  Gain  -3.70 dB  Q  4.967
+Filter 17: ON  PK       Fc   13303 Hz  Gain  -4.50 dB  Q  3.229
+Filter 18: ON  PK       Fc   16536 Hz  Gain  -5.10 dB  Q  2.425
+Filter 19: ON  None   
+Filter 20: ON  None   
+Filter 21: ON  None   
+Filter 25: ON  None   
+

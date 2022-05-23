@@ -1702,7 +1702,6 @@ static void I2S_DMARxCplt(DMA_HandleTypeDef *hdma)
 #else
   HAL_I2S_RxCpltCallback(hi2s);
 #endif /* USE_HAL_I2S_REGISTER_CALLBACKS */
-  HAL_I2S_RxCpltCallback(hi2s);
 }
 
 /**
