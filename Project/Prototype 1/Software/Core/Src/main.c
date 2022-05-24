@@ -60,6 +60,11 @@ uint8_t txBuf[16];
 uint8_t mode = 1;
 uint16_t counter = 0;
 
+int U1Sample = 0;
+int U2Sample = 0;
+int U3Sample = 0;
+int U4Sample = 0;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -170,7 +175,7 @@ int main(void)
 
 
 	  if(HAL_GPIO_ReadPin(Button1_GPIO_Port,Button1_Pin)==1){
-		  if(mode == 4){
+		  if(mode == 3){
 			  mode = 1;
 		  }
 		  else{
@@ -282,7 +287,7 @@ static void MX_I2S2_Init(void)
   /* USER CODE END I2S2_Init 1 */
   hi2s2.Instance = SPI2;
   hi2s2.Init.Mode = I2S_MODE_MASTER_RX;
-  hi2s2.Init.Standard = I2S_STANDARD_MSB;
+  hi2s2.Init.Standard = I2S_STANDARD_PHILIPS;
   hi2s2.Init.DataFormat = I2S_DATAFORMAT_32B;
   hi2s2.Init.MCLKOutput = I2S_MCLKOUTPUT_DISABLE;
   hi2s2.Init.AudioFreq = I2S_AUDIOFREQ_48K;
@@ -487,49 +492,56 @@ static void MX_GPIO_Init(void)
 
 void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s){
 
-/*
 
-	if(rxBuf[0]>30500){
-		HAL_GPIO_WritePin(LED1_GPIO_Port,LED1_Pin,1);
-	}
-	if(rxBuf[1]>30500){
-		HAL_GPIO_WritePin(LED2_GPIO_Port,LED2_Pin,1);
-	}
-	if(rxBuf[2]>30500){
-		HAL_GPIO_WritePin(LED3_GPIO_Port,LED3_Pin,1);
-	}
-
-*/
-	/*
-
-	if(counter == 65535){
-		counter = 0;
-	}
-	else{
-		counter = counter + 10;
-	}
-
-	txBuf[2] = counter >>8 ;
-	txBuf[1] = counter & 0xff ;
-
-
-*/
 /*
 
 	int lSample = (int) (rxBuf2[0]<<16 | rxBuf2[1]);
 
 
 
-	txBuf[3] = (lSample >> 24) & 0xFF;
-	txBuf[2] = (lSample >> 16) & 0xFF;
-	txBuf[1] = (lSample >> 8)  & 0xFF;
-	txBuf[0] =  lSample  & 0xFF;
 
 */
-	txBuf[3]= (rxBuf2[0]>>8) & 0xFF;
-	txBuf[2]=  rxBuf2[0] & 0xFF;
-	txBuf[1]= (rxBuf2[1]>>8) & 0xFF;
-	txBuf[0]=  rxBuf2[1] & 0xFF;
+	if(mode == 1){
+
+		txBuf[3]= (rxBuf2[0]>>8) & 0xFF;
+		txBuf[2]=  rxBuf2[0] & 0xFF;
+		txBuf[1]= (rxBuf2[1]>>8) & 0xFF;
+		txBuf[0]=  rxBuf2[1] & 0xFF;
+
+	}
+
+
+	if(mode == 2){
+
+		U3Sample = (int) (rxBuf2[0]<<16 | rxBuf2[1]);
+		U4Sample = (int) (rxBuf2[2]<<16 | rxBuf2[3]);
+
+		int TXSample =  (U3Sample>>1) + (U4Sample>>1);
+
+		txBuf[3] = (TXSample >> 24)  & 0xFF ;
+		txBuf[2] = (TXSample >> 16)  & 0xFF ;
+		txBuf[1] = (TXSample >> 8 )  & 0xFF ;
+		txBuf[0] = (TXSample )       & 0xFF ;
+
+	}
+
+	if(mode == 3){
+
+		U1Sample = (int) ( rxBuf[0]<<16 | rxBuf[1]);
+		U2Sample = (int) ( rxBuf[2]<<16 | rxBuf[3]);
+		U3Sample = (int) (rxBuf2[0]<<16 | rxBuf2[1]);
+		U4Sample = (int) (rxBuf2[2]<<16 | rxBuf2[3]);
+
+		int TXSample = (U1Sample>>2) + (U2Sample>>2) + (U3Sample>>2) + (U4Sample>>2);
+
+		txBuf[3] = (TXSample >> 24)  & 0xFF ;
+		txBuf[2] = (TXSample >> 16)  & 0xFF ;
+		txBuf[1] = (TXSample >> 8 )  & 0xFF ;
+		txBuf[0] = (TXSample )       & 0xFF ;
+
+	}
+
+
 
 	/* deze wel nodig!!
 	txBuf[7]= (rxBuf2[2]>>8) & 0xFF;
@@ -537,40 +549,20 @@ void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s){
 	txBuf[5]= (rxBuf2[3]>>8) & 0xFF;
 	txBuf[4]=  rxBuf2[3] & 0xFF;
 
-	/*
-	txBuf[1] = rxBuf2[0] & 0xff;
-	txBuf[2] = (rxBuf2[0] >>8) ;
-	txBuf[9] = rxBuf2[0] & 0xff;
-	txBuf[10] = (rxBuf2[0] >>8) ;
+	*/
 
+	/*dit is voor de U1 MEMS
 
-	txBuf[0] = (rxBuf2[0]<<4) & 0b11110000;
-	txBuf[1] = (rxBuf2[0] >> 4)& 0b11111111;
-	txBuf[2] = (rxBuf2[1] <<4 ) | ((rxBuf2[0]>>12) & 0b00001111);
+	if(mode == 3){
 
+		txBuf[3]= (rxBuf[0]>>8) & 0xFF;
+		txBuf[2]=  rxBuf[0] & 0xFF;
+		txBuf[1]= (rxBuf[1]>>8) & 0xFF;
+		txBuf[0]=  rxBuf[1] & 0xFF;
 
-	txBuf[9] = (rxBuf2[0]<<4) & 0b11110000;
-	txBuf[10] = (rxBuf2[0] >> 4)& 0b11111111;
-	txBuf[8] = (rxBuf2[1] <<4 ) | ((rxBuf2[0]>>12) & 0b00001111);
+	}
 
-
-
-
-
-
-
-
-
-	/*
-	txBuf[0] = rxBuf[0] & 0xff;
-	txBuf[1] = rxBuf[0] >>8;
-	txBuf[2] = rxBuf[1] & 0xff;
-	txBuf[3] = rxBuf[1] >>8;
-	txBuf[4] = rxBuf[2] & 0xff;
-	txBuf[5] = rxBuf[2] >>8;
-	txBuf[6] = rxBuf[3] & 0xff;
-	txBuf[7] = rxBuf[3] >>8;
-    */
+ */
 
 	  UNUSED(hi2s);
 }
@@ -583,41 +575,58 @@ void HAL_I2S_RxHalfCpltCallback(I2S_HandleTypeDef *hi2s){
 
 
 
-	txBuf[11]= (rxBuf2[4]>>8) & 0xFF;
-	txBuf[10]=  rxBuf2[4] & 0xFF;
-	txBuf[9]= (rxBuf2[5]>>8) & 0xFF;
-	txBuf[8]=  rxBuf2[5] & 0xFF;
+	if(mode == 1){
+		txBuf[11]= (rxBuf2[4]>>8) & 0xFF;
+		txBuf[10]=  rxBuf2[4] & 0xFF;
+		txBuf[9]= (rxBuf2[5]>>8) & 0xFF;
+		txBuf[8]=  rxBuf2[5] & 0xFF;
+	}
+
+	if (mode == 2){
+
+		U3Sample = (int) (rxBuf2[4]<<16 | rxBuf2[5]);
+		U4Sample = (int) (rxBuf2[6]<<16 | rxBuf2[7]);
+
+		int TXSample =  (U3Sample>>1) + (U4Sample>>1);
+
+		txBuf[11] = (TXSample >> 24)  & 0xFF ;
+		txBuf[10] = (TXSample >> 16)  & 0xFF ;
+		txBuf[9]  = (TXSample >> 8 )  & 0xFF ;
+		txBuf[8]  = (TXSample )       & 0xFF ;
+
+	}
+
+	if(mode == 3){
+
+		U1Sample = (int) ( rxBuf[4]<<16 | rxBuf[5]);
+		U2Sample = (int) ( rxBuf[6]<<16 | rxBuf[7]);
+		U3Sample = (int) (rxBuf2[4]<<16 | rxBuf2[5]);
+		U4Sample = (int) (rxBuf2[6]<<16 | rxBuf2[7]);
+
+		int TXSample = (U1Sample>>2) + (U2Sample>>2) + (U3Sample>>2) + (U4Sample>>2);
+
+		txBuf[11] = (TXSample >> 24)  & 0xFF ;
+		txBuf[10] = (TXSample >> 16)  & 0xFF ;
+		txBuf[9]  = (TXSample >> 8 )  & 0xFF ;
+		txBuf[8]  = (TXSample )       & 0xFF ;
+
+	}
 
 	/* deze wel nodig!!
 	txBuf[15]= (rxBuf2[6]>>8) & 0xFF;
 	txBuf[14]=  rxBuf2[6] & 0xFF;
 	txBuf[13]= (rxBuf2[7]>>8) & 0xFF;
 	txBuf[12]=  rxBuf2[7] & 0xFF;
+    */
 
-	/*
-	int lSample = (int) (rxBuf2[2]<<16| rxBuf2[3]);
-
-	txBuf[10] = (lSample >> 24) & 0xFF;
-	txBuf[9] = (lSample >> 16) & 0xFF;
-	txBuf[8] = (lSample >> 8)  & 0xFF;
-	txBuf[11] =  lSample  & 0xFF;
-
-
-	/*
-	HAL_GPIO_WritePin(LED1_GPIO_Port,LED1_Pin,0);
-	HAL_GPIO_WritePin(LED2_GPIO_Port,LED2_Pin,0);
-	HAL_GPIO_WritePin(LED3_GPIO_Port,LED3_Pin,0);
-	/*
-	txBuf[8] = rxBuf[4] & 0xff;
-	txBuf[9] = rxBuf[4] >>8;
-	txBuf[10] = rxBuf[5] & 0xff;
-	txBuf[11] = rxBuf[5] >>8;
-	txBuf[12] = rxBuf[6] & 0xff;
-	txBuf[13] = rxBuf[6] >>8;
-	txBuf[14] = rxBuf[7] & 0xff;
-	txBuf[15] = rxBuf[7] >>8;
+	/* dit is voor de U1 MEMS
+	if(mode == 3){
+		txBuf[11]= (rxBuf[4]>>8) & 0xFF;
+		txBuf[10]=  rxBuf[4] & 0xFF;
+		txBuf[9]= (rxBuf[5]>>8) & 0xFF;
+		txBuf[8]=  rxBuf[5] & 0xFF;
+	}
 	*/
-
 
 	UNUSED(hi2s);
 
